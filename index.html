@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gym Log">
+<meta name="theme-color" content="#0f1115">
+<title>Gym Log</title>
+<style>
+:root{--bg:#0f1115;--card:#1a1d24;--line:#2a2f3a;--text:#e9ecf1;--mute:#8b93a3;--acc:#3ddc84;--warn:#ff6b6b;--r:14px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--text);font:16px/1.45 -apple-system,system-ui,"Sukhumvit Set",sans-serif;padding:env(safe-area-inset-top) 16px calc(90px + env(safe-area-inset-bottom))}
+main{max-width:560px;margin:0 auto}
+h1{font-size:26px;margin:18px 0 12px}
+h2{font-size:17px;margin:0 0 8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:12px 0}
+label{display:block;color:var(--mute);font-size:13px;margin:10px 0 4px}
+input,select{font:inherit;font-size:16px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;min-width:0;-webkit-appearance:none;appearance:none}
+input[type=date]{min-height:46px}
+input:focus,select:focus{outline:none;border-color:var(--acc)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.big{display:block;width:100%;padding:18px;border-radius:var(--r);font-size:20px;font-weight:700;margin:16px 0 8px}
+.go{background:var(--acc);color:#06240f}
+.stop{background:var(--warn);color:#2a0606}
+.btn{display:block;width:100%;text-align:center;padding:12px;border-radius:10px;background:var(--acc);color:#06240f;font-weight:600;margin-top:10px}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+.link{display:block;margin:8px auto;padding:8px 12px;color:var(--mute);font-size:14px}
+.warn{color:var(--warn)}
+.mute{color:var(--mute);font-size:14px}
+.center{text-align:center;padding:24px 0}
+.top{position:sticky;top:0;background:var(--bg);padding:12px 0 8px;z-index:5}
+.day{font-size:24px;font-weight:700}
+#sug{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+#sug button{text-align:left;padding:12px;background:var(--card);border:1px solid var(--line);border-radius:10px}
+#sug .new{color:var(--acc)}
+.exhead{display:flex;align-items:center;gap:8px}
+.exhead b{flex:1;font-size:17px}
+.exhead select{width:auto;padding:6px 10px}
+.x{width:36px;height:36px;color:var(--mute);font-size:16px;flex:none}
+.last{font-size:13px;color:var(--mute);margin:6px 0 2px}
+.row{display:grid;grid-template-columns:36px 1fr 1fr 36px;gap:8px;align-items:center;margin-top:8px}
+.row.hdr{font-size:12px;color:var(--mute);margin-top:10px;text-align:center}
+.row .n{text-align:center;color:var(--mute);font-weight:600}
+.row input{text-align:center;padding:10px 6px}
+.add{width:100%;margin-top:10px;padding:10px;border:1px dashed var(--line);border-radius:10px;color:var(--acc)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stats div{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 6px;text-align:center}
+.stats b{display:block;font-size:22px}
+.stats span{font-size:12px;color:var(--mute)}
+.sh{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.sess ul{margin:10px 0 0;padding-left:18px}
+.sess li{margin:6px 0;font-size:15px}
+.badge{font-size:11px;background:#3a2f12;color:#ffcc66;padding:3px 8px;border-radius:99px;white-space:nowrap}
+pre{white-space:pre-wrap;word-break:break-word;font-size:12px;background:var(--bg);padding:10px;border-radius:10px;color:var(--mute);margin:0}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:rgba(15,17,21,.95);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:10}
+nav button{flex:1;padding:12px 0 10px;color:var(--mute);font-size:13px}
+nav button .i{display:block;font-size:20px}
+nav button.on{color:var(--acc)}
+#toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#e9ecf1;color:#111;padding:10px 16px;border-radius:99px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:20;max-width:90vw;text-align:center}
+#toast.show{opacity:1}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:30;padding:24px}
+#modal.show{display:flex}
+#modal .box{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px;width:100%;max-width:340px;text-align:center}
+#modal p{margin:0 0 16px;font-size:17px}
+#modal .btns{display:flex;gap:10px}
+#modal .btns button{flex:1;padding:12px;border-radius:10px;font-weight:600}
+#modal .no{border:1px solid var(--line)}
+#modal .yes{background:var(--acc);color:#06240f}
+</style>
+</head>
+<body>
+<main id="main"></main>
+<nav>
+  <button data-tab="today"><span class="i">🏋️</span>วันนี้</button>
+  <button data-tab="hist"><span class="i">📅</span>ประวัติ</button>
+  <button data-tab="set"><span class="i">⚙️</span>ตั้งค่า</button>
+</nav>
+<div id="toast"></div>
+<div id="modal"><div class="box"><p id="mMsg"></p><div class="btns"><button class="no" id="mNo">ยกเลิก</button><button class="yes" id="mYes">ตกลง</button></div></div></div>
+
+<script>
+const EXERCISES = [
+  'Bench Press','Incline Bench Press','Decline Bench Press','Dumbbell Bench Press','Incline Dumbbell Press',
+  'Chest Press (Machine)','Chest Fly (Machine)','Dumbbell Fly','Cable Crossover','Push Up','Dips',
+  'Squat','Front Squat','Smith Machine Squat','Leg Press','Hack Squat','Lunge','Bulgarian Split Squat',
+  'Leg Extension','Leg Curl','Romanian Deadlift','Deadlift','Hip Thrust','Hip Abduction','Hip Adduction','Calf Raise',
+  'Pull Up','Chin Up','Lat Pulldown','Seated Cable Row','Barbell Row','Dumbbell Row','T-Bar Row','Machine Row','Face Pull',
+  'Overhead Press','Dumbbell Shoulder Press','Shoulder Press (Machine)','Lateral Raise','Cable Lateral Raise','Rear Delt Fly','Shrug',
+  'Barbell Curl','Dumbbell Curl','Hammer Curl','Preacher Curl','Cable Curl',
+  'Tricep Pushdown','Skull Crusher','Overhead Tricep Extension','Close Grip Bench Press',
+  'Plank','Crunch','Cable Crunch','Hanging Leg Raise','Russian Twist','Ab Wheel',
+  'Treadmill','Bike','Elliptical','Rowing Machine','Stair Climber'
+];
+const UNITS = ['kg','lb','เบอร์','BW'];
+const K = {active:'gym.active', hist:'gym.history', custom:'gym.custom', cfg:'gym.cfg', del:'gym.deleted'};
+const SQL = `create table if not exists public.sessions (
+  id text primary key,
+  date date not null,
+  start_at timestamptz not null,
+  end_at timestamptz,
+  data jsonb not null default '{}'::jsonb,
+  created_at timestamptz default now()
+);
+alter table public.sessions enable row level security;
+create policy "personal anon access" on public.sessions
+  for all to anon using (true) with check (true);
+grant select, insert, update, delete on public.sessions to anon;`;
+
+const $ = s => document.querySelector(s);
+const load = (k,d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } };
+const save = (k,v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){ toast('บันทึกในเครื่องไม่ได้'); } };
+
+let active = load(K.active, null);
+let hist = load(K.hist, []);
+let custom = load(K.custom, []);
+let cfg = load(K.cfg, {url:'', key:''});
+let deleted = load(K.del, []);
+let tab = 'today';
+
+// ---------- helpers ----------
+const pad = n => String(n).padStart(2,'0');
+const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtTime = iso => iso ? new Date(iso).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}) : '-';
+const fmtDate = d => new Date(d+'T00:00').toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short',year:'2-digit'});
+const fmtDateShort = d => new Date(d+'T00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short'});
+const durMs = s => s.endAt ? new Date(s.endAt) - new Date(s.startAt) : 0;
+function fmtDur(ms){ const m = Math.max(0, Math.round(ms/60000)); const h = Math.floor(m/60); return h ? `${h} ชม. ${m%60} นาที` : `${m} นาที`; }
+function clock(ms){ const t = Math.max(0, Math.floor(ms/1000)); return `${Math.floor(t/3600)}:${pad(Math.floor(t/60)%60)}:${pad(t%60)}`; }
+function wLabel(w, unit){
+  if (unit === 'BW') return 'BW';
+  if (unit === 'เบอร์') return `เบอร์${w ?? 0}`;
+  return `${w ?? 0}${unit}`;
+}
+function setsText(sets, unit){
+  return sets.map(s => `${wLabel(s.w, unit)}×${s.reps ?? 0}`).join(', ');
+}
+function allExercises(){
+  const seen = new Map();
+  [...EXERCISES, ...custom, ...hist.flatMap(s => s.exercises.map(e => e.name))].forEach(n => { const k = n.toLowerCase(); if (!seen.has(k)) seen.set(k, n); });
+  return [...seen.values()];
+}
+function lastSetsFor(name){
+  const k = name.toLowerCase();
+  for (const s of hist){ const ex = s.exercises.find(e => e.name.toLowerCase() === k); if (ex && ex.sets.length) return {date:s.date, sets:ex.sets, unit:ex.unit}; }
+  return null;
+}
+const sortHist = () => hist.sort((a,b) => (b.date + b.startAt).localeCompare(a.date + a.startAt));
+const persist = () => save(K.active, active);
+let toastT;
+function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2600); }
+function download(name, text, type){
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text],{type})); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+
+// in-page confirm (native confirm() is blocked in some previews / sandboxes)
+function ask(msg){
+  return new Promise(res => {
+    const m = $('#modal'); $('#mMsg').textContent = msg; m.classList.add('show');
+    const done = v => { m.classList.remove('show'); $('#mYes').onclick = $('#mNo').onclick = null; res(v); };
+    $('#mYes').onclick = () => done(true); $('#mNo').onclick = () => done(false);
+  });
+}
+
+// ---------- views ----------
+function startView(){
+  const last = hist[0];
+  return `<h1>วันนี้เล่นอะไร</h1>
+  <div class="card">
+    <label>วันที่</label><input type="date" id="date" value="${todayStr()}">
+    <button class="big go" data-act="start">▶ เริ่มบันทึก</button>
+  </div>
+  ${last ? `<p class="mute">ครั้งล่าสุด: ${fmtDate(last.date)} · ${last.exercises.length} ท่า</p>` : ''}`;
+}
+function exCard(ex, i){
+  const last = lastSetsFor(ex.name);
+  return `<div class="card ex" data-i="${i}">
+    <div class="exhead"><b>${esc(ex.name)}</b>
+      <select data-f="unit">${UNITS.map(u => `<option ${u===ex.unit?'selected':''}>${u}</option>`).join('')}</select>
+      <button class="x" data-act="delEx" aria-label="ลบท่า">✕</button></div>
+    ${last ? `<div class="last">ครั้งก่อน (${fmtDateShort(last.date)}): ${esc(setsText(last.sets, last.unit))}</div>` : ''}
+    <div class="row hdr"><span>เซ็ต</span><span>น้ำหนัก</span><span>ครั้ง</span><span></span></div>
+    ${ex.sets.map((s,j) => `<div class="row" data-j="${j}"><span class="n">${j+1}</span>
+      <input inputmode="decimal" data-f="w" value="${esc(s.w)}" placeholder="${ex.unit==='BW'?'-':'0'}">
+      <input inputmode="numeric" data-f="reps" value="${esc(s.reps)}" placeholder="0">
+      <button class="x" data-act="delSet" aria-label="ลบเซ็ต">✕</button></div>`).join('')}
+    <button class="add" data-act="addSet">+ เซ็ต</button>
+  </div>`;
+}
+function activeView(){
+  return `<div class="top">
+    <div class="day">${fmtDate(active.date)}</div>
+  </div>
+  <input id="q" placeholder="🔍 พิมพ์ค้นหาท่า..." autocomplete="off" autocorrect="off" autocapitalize="off" enterkeyhint="done">
+  <div id="sug"></div>
+  ${active.exercises.map(exCard).join('') || '<p class="mute center">ยังไม่มีท่า — พิมพ์ค้นหาด้านบน</p>'}
+  <button class="big go" data-act="finish">✓ บันทึก</button>
+  <button class="link warn" data-act="cancel">ยกเลิกรอบนี้</button>`;
+}
+function histView(){
+  if (!hist.length) return `<h1>ประวัติ</h1><p class="mute center">ยังไม่มีบันทึก</p>`;
+  const mon = todayStr().slice(0,7);
+  const mList = hist.filter(s => s.date.startsWith(mon));
+  return `<h1>ประวัติ</h1>
+  <div class="stats">
+    <div><b>${mList.length}</b><span>ครั้งเดือนนี้</span></div>
+    <div><b>${mList.reduce((a,s) => a + s.exercises.reduce((b,e) => b + e.sets.length, 0), 0)}</b><span>เซ็ตเดือนนี้</span></div>
+    <div><b>${hist.length}</b><span>ทั้งหมด</span></div>
+  </div>
+  ${hist.map(s => `<div class="card sess">
+    <div class="sh"><div><b>${fmtDate(s.date)}</b>
+      <div class="mute">${s.exercises.length} ท่า</div></div>
+      ${(cfg.url && s.synced !== true) ? '<span class="badge">ยังไม่ซิงก์</span>' : ''}</div>
+    <ul>${s.exercises.map(ex => `<li><b>${esc(ex.name)}</b> <span class="mute">${ex.sets.length} เซ็ต</span><br>${esc(setsText(ex.sets, ex.unit))}</li>`).join('') || '<li class="mute">ไม่มีท่า</li>'}</ul>
+    <button class="link warn" data-act="delSession" data-id="${esc(s.id)}">ลบรายการนี้</button>
+  </div>`).join('')}`;
+}
+function setView(){
+  return `<h1>ตั้งค่า</h1>
+  <div class="card"><h2>ฐานข้อมูล Supabase (ไม่บังคับ)</h2>
+    <p class="mute">ไม่ใส่ก็ใช้ได้ ข้อมูลเก็บในเครื่อง ถ้าใส่ จะซิงก์ขึ้นคลาวด์ทุกครั้งที่กด "บันทึก" (ค่านี้เก็บแค่ในมือถือ ไม่อยู่ใน GitHub)</p>
+    <label>Project URL</label><input id="cfgUrl" value="${esc(cfg.url)}" placeholder="https://xxxx.supabase.co" autocapitalize="off" autocorrect="off">
+    <label>Publishable / anon key</label><input id="cfgKey" value="${esc(cfg.key)}" autocapitalize="off" autocorrect="off">
+    <button class="btn" data-act="saveCfg">บันทึก + ซิงก์</button>
+    <button class="btn ghost" data-act="sync">ซิงก์ตอนนี้</button>
+  </div>
+  <div class="card"><h2>สำรองข้อมูล</h2>
+    <button class="btn ghost" data-act="export">ดาวน์โหลด JSON (backup)</button>
+    <button class="btn ghost" data-act="exportCsv">ดาวน์โหลด CSV (เปิดใน Excel)</button>
+    <label class="btn ghost" style="color:var(--text);font-size:16px">นำเข้า JSON<input type="file" id="imp" accept=".json,application/json" hidden></label>
+  </div>
+  <div class="card"><h2>SQL สร้างตารางใน Supabase</h2><pre>${esc(SQL)}</pre></div>`;
+}
+
+let timerId;
+function tick(){
+  clearInterval(timerId);
+
+}
+function render(){
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+  const m = $('#main');
+  m.innerHTML = tab === 'today' ? (active ? activeView() : startView()) : tab === 'hist' ? histView() : setView();
+  tick();
+}
+
+// ---------- actions ----------
+function showSug(q){
+  const box = $('#sug'); q = q.trim();
+  if (!q){ box.innerHTML = ''; return; }
+  const ql = q.toLowerCase();
+  const list = allExercises().filter(n => n.toLowerCase().includes(ql)).slice(0,8);
+  const exact = list.some(n => n.toLowerCase() === ql);
+  box.innerHTML = list.map(n => `<button data-act="addEx" data-name="${esc(n)}">${esc(n)}</button>`).join('')
+    + (exact ? '' : `<button class="new" data-act="addEx" data-name="${esc(q)}">+ เพิ่มท่าใหม่ "${esc(q)}"</button>`);
+}
+function addEx(name){
+  name = (name || '').trim(); if (!name || !active) return;
+  if (!allExercises().some(n => n.toLowerCase() === name.toLowerCase())){ custom.push(name); save(K.custom, custom); }
+  const last = lastSetsFor(name);
+  active.exercises.push({name, unit: last ? last.unit : 'kg', sets:[{w: last ? (last.sets[0].w ?? '') : '', reps:''}]});
+  persist(); render();
+  const cards = document.querySelectorAll('.ex'); const c = cards[cards.length-1];
+  if (c){ c.scrollIntoView({behavior:'smooth', block:'center'}); const inp = c.querySelector('[data-f="reps"]'); inp && inp.focus({preventScroll:true}); }
+}
+const num = v => { const s = String(v ?? '').replace(',', '.').trim(); if (s === '') return null; const n = Number(s); return isNaN(n) ? null : n; };
+async function finish(){
+  if (!await ask('บันทึกวันนี้?')) return;
+  const exercises = active.exercises.map(ex => ({
+    name: ex.name, unit: ex.unit,
+    sets: ex.sets.map(s => ({w: num(s.w), reps: num(s.reps)})).filter(s => s.w !== null || s.reps !== null)
+  })).filter(ex => ex.sets.length);
+  const s = {id: active.id, date: active.date, startAt: active.startAt, endAt: new Date().toISOString(), exercises, synced:false};
+  hist.unshift(s); sortHist(); save(K.hist, hist);
+  active = null; persist();
+  tab = 'hist'; render(); window.scrollTo(0,0);
+  toast(`บันทึกแล้ว · ${exercises.length} ท่า`);
+  sync(true);
+}
+function exportCsv(){
+  const rows = [['date','exercise','set','weight','unit','reps']];
+  [...hist].reverse().forEach(s => s.exercises.forEach(ex => ex.sets.forEach((st,j) =>
+    rows.push([s.date, ex.name, j+1, st.w ?? '', ex.unit, st.reps ?? '']))));
+  const csv = '\ufeff' + rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  download(`gym-log-${todayStr()}.csv`, csv, 'text/csv');
+}
+
+// ---------- Supabase (REST, no library) ----------
+function api(path, opt = {}){
+  const headers = {apikey: cfg.key, 'Content-Type':'application/json', ...(opt.headers || {})};
+  if (cfg.key.startsWith('eyJ')) headers.Authorization = 'Bearer ' + cfg.key; // legacy anon JWT key
+  return fetch(cfg.url.replace(/\/+$/,'') + '/rest/v1/' + path, {...opt, headers}).then(async r => {
+    if (!r.ok) throw new Error(r.status + ' ' + (await r.text()).slice(0,120));
+    const t = await r.text(); return t ? JSON.parse(t) : null;
+  });
+}
+let syncing = false;
+async function sync(quiet){
+  if (!cfg.url || !cfg.key || syncing) return;
+  syncing = true;
+  try {
+    for (const id of [...deleted]){
+      await api('sessions?id=eq.' + encodeURIComponent(id), {method:'DELETE'});
+      deleted = deleted.filter(x => x !== id); save(K.del, deleted);
+    }
+    const rows = await api('sessions?select=*');
+    const ids = new Set(hist.map(s => s.id));
+    for (const r of rows || []){
+      if (!ids.has(r.id)) hist.push({id:r.id, date:r.date, startAt:r.start_at, endAt:r.end_at, exercises:(r.data && r.data.exercises) || [], synced:true});
+    }
+    const remote = new Set((rows || []).map(r => r.id));
+    hist.forEach(s => { if (remote.has(s.id) && s.synced === undefined) s.synced = true; });
+    const pending = hist.filter(s => s.synced !== true);
+    if (pending.length){
+      await api('sessions', {method:'POST', headers:{Prefer:'resolution=merge-duplicates,return=minimal'},
+        body: JSON.stringify(pending.map(s => ({id:s.id, date:s.date, start_at:s.startAt, end_at:s.endAt, data:{exercises:s.exercises}})))});
+      pending.forEach(s => s.synced = true);
+    }
+    sortHist(); save(K.hist, hist);
+    if (!quiet) toast('ซิงก์เรียบร้อย ✓');
+    if (tab === 'hist') render();
+  } catch(e){
+    toast('ซิงก์ไม่ได้: ' + e.message);
+  } finally { syncing = false; }
+}
+
+// ---------- events ----------
+document.querySelector('nav').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return; tab = b.dataset.tab; render(); window.scrollTo(0,0);
+});
+$('#main').addEventListener('click', async e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const card = b.closest('.ex'), row = b.closest('.row');
+  const i = card ? +card.dataset.i : -1, j = row ? +row.dataset.j : -1;
+  switch (b.dataset.act){
+    case 'start':
+      active = {id: uid(), date: ($('#date').value || todayStr()), startAt: new Date().toISOString(), exercises: []};
+      persist(); render(); break;
+    case 'addEx': addEx(b.dataset.name); break;
+    case 'addSet': {
+      const ex = active.exercises[i], p = ex.sets[ex.sets.length-1];
+      ex.sets.push(p ? {w:p.w, reps:p.reps} : {w:'', reps:''}); persist(); render();
+      const rows = document.querySelectorAll(`.ex[data-i="${i}"] .row[data-j]`); const r = rows[rows.length-1];
+      r && r.querySelector('[data-f="reps"]').focus(); break;
+    }
+    case 'delSet': active.exercises[i].sets.splice(j,1); persist(); render(); break;
+    case 'delEx': if (await ask(`ลบ ${active.exercises[i].name}?`)){ active.exercises.splice(i,1); persist(); render(); } break;
+    case 'finish': finish(); break;
+    case 'cancel': if (await ask('ทิ้งรอบนี้ทั้งหมด?')){ active = null; persist(); render(); } break;
+    case 'delSession': {
+      if (!await ask('ลบรายการนี้?')) break;
+      const id = b.dataset.id; hist = hist.filter(s => s.id !== id); save(K.hist, hist);
+      if (cfg.url){ deleted.push(id); save(K.del, deleted); sync(true); }
+      render(); break;
+    }
+    case 'saveCfg':
+      cfg = {url: $('#cfgUrl').value.trim(), key: $('#cfgKey').value.trim()}; save(K.cfg, cfg);
+      toast('บันทึกแล้ว กำลังซิงก์...'); sync(false); break;
+    case 'sync': cfg.url ? sync(false) : toast('ยังไม่ได้ใส่ Supabase'); break;
+    case 'export': download(`gym-log-${todayStr()}.json`, JSON.stringify({hist, custom}, null, 1), 'application/json'); break;
+    case 'exportCsv': exportCsv(); break;
+  }
+});
+function onField(e){
+  const t = e.target;
+  if (t.id === 'q'){ showSug(t.value); return; }
+  if (t.id === 'imp' && e.type === 'change'){
+    const f = t.files[0]; if (!f) return;
+    f.text().then(txt => {
+      const d = JSON.parse(txt); const ids = new Set(hist.map(s => s.id)); let n = 0;
+      (d.hist || []).forEach(s => { if (!ids.has(s.id)){ hist.push({...s, synced:false}); n++; } });
+      (d.custom || []).forEach(c => { if (!custom.includes(c)) custom.push(c); });
+      sortHist(); save(K.hist, hist); save(K.custom, custom); toast(`นำเข้า ${n} รายการ`); sync(true);
+    }).catch(() => toast('ไฟล์ไม่ถูกต้อง'));
+    return;
+  }
+  const f = t.dataset && t.dataset.f; if (!f || !active) return;
+  const i = +t.closest('.ex').dataset.i;
+  if (f === 'unit'){ active.exercises[i].unit = t.value; persist(); if (e.type === 'change') render(); }
+  else { active.exercises[i].sets[+t.closest('.row').dataset.j][f] = t.value; persist(); }
+}
+$('#main').addEventListener('input', onField);
+$('#main').addEventListener('change', onField);
+$('#main').addEventListener('keydown', e => {
+  if (e.target.id === 'q' && e.key === 'Enter'){
+    e.preventDefault(); const first = $('#sug button'); if (first) addEx(first.dataset.name); else addEx(e.target.value);
+  }
+});
+document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
+
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+render();
+sync(true);
+</script>
+</body>
+</html>
